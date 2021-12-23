@@ -1,0 +1,97 @@
+@startuml
+enum DeviceMachineState {
+    Free= 0,
+    Provisioning,
+    Erasing,
+    Running,
+}
+enum DevicePowerState {
+    PowerOn,
+    PowerOff,
+    PoweringOn,
+    PoweringOff,
+}
+enum BootType {
+    NETWORK = 0,
+    STORAGE,
+}
+class Bmc {
+Not implemented
+}
+class PowerSwitch {
+Not implemented
+}
+class Device {
+    + Disabled : bool <<get>> <<set>>
+    ..
+    + Name : string <<get>> <<set>>
+    ..
+    + Serial : string <<get>> <<set>>
+    ..
+    + MachineState : DeviceMachineState <<get>> <<set>>
+    ..
+    + MachineStateUpdated : DateTime  <<get>> <<set>>
+    ..
+    + PowerState : DevicePowerState <<get>> <<set>>
+    ..
+    + PowerStateUpdated : DateTime  <<get>> <<set>>
+    ..
+    + NextBoot : BootType <<get>> <<set>>
+    ..
+    + <<virtual>> Console : DbConsole <<get>> <<set>>
+    ..
+    + <<virtual>> Template : DeviceTemplate <<get>> <<set>>
+    ..
+    + <<virtual>> BMC : Bmc <<get>> <<set>>
+    ..
+    + <<virtual>> Switch : PowerSwitch <<get>> <<set>>
+}
+Device::Switch -- PowerSwitch
+Device::BMC -- Bmc
+Device::DevicePowerState -- DevicePowerState
+Device::MachineState -- DeviceMachineState
+Device::Template -- DeviceTemplate
+Device::NextBoot -- BootType
+class DeviceTemplate {
+    + Name : string <<get>> <<set>>
+    Unique name for template
+    ..
+    + Model : string <<get>> <<set>>
+    ..
+    + Manufacturer : string <<get>> <<set>>
+    ..
+    + Arch : string <<get>> <<set>>
+}
+class DeviceEthPort {
+    + Disabled : bool <<get>> <<set>>
+    ..
+    + ManagementPort : bool <<get>> <<set>>
+    ..
+    + MacAddress : string <<get>> <<set>>
+    ..
+    + <<virtual>> Connected : SwitchPort <<get>> <<set>>
+    ..
+    + <<virtual>> Device : Device <<get>> <<set>>
+}
+DeviceEthPort::Device -- Device
+class BootStage {
+    + Name : string  <<get>> <<set>>
+    ..
+    + Index : int  <<get>> <<set>>
+    ..
+    + <<virtual>> Template : DeviceTemplate <<get>> <<set>>
+}
+BootStage::Template -- DeviceTemplate
+class BootStageSharedFile {
+    + FileId : guid  <<get>> <<set>>
+    ..
+    + VirtualPath : string  <<get>> <<set>>
+    ..
+    + ShareViaTFTP : bool  <<get>> <<set>>
+    ..
+    + ShareViaHTTP : bool  <<get>> <<set>>
+    ..
+    + <<virtual>> Stage : BootStage <<get>> <<set>>
+}
+BootStageSharedFile::Stage -- BootStage
+@enduml
