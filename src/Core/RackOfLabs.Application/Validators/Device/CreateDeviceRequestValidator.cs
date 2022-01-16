@@ -15,15 +15,12 @@ public class CreateDeviceRequestValidator : AbstractValidator<CreateDeviceReques
         RuleFor(d => d.Serial)
             .NotNull().NotEmpty().WithMessage("{PropertyName} is required.")
             .MaximumLength(100).WithMessage("{PropertyName} must not exceed 100 characters.")
-            .MustAsync(IsUniqueSerial).WithMessage("{PropertyName} already exists.")
+            .MustAsync(IsUniqueSerial).WithMessage("Device with this {PropertyName} already exists.")
             .WithErrorCode("Test");
     }
 
     private async Task<bool> IsUniqueSerial(string serial, CancellationToken cancellationToken)
     {
-        if(!string.IsNullOrEmpty(serial))
-            return !(await _repository.ExistsAsync<Domain.Entities.Device>(d => serial.Trim() == d.Serial.Trim(), cancellationToken));
-        
-        return true;
+        return !(await _repository.ExistsAsync<Domain.Entities.Device>(d => serial.Trim() == d.Serial.Trim(), cancellationToken));
     }
 }

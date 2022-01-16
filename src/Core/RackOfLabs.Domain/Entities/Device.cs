@@ -33,5 +33,5 @@ public class Device : BaseEntity
     /// <summary>
     /// The template used for this device
     /// </summary>
-    public virtual DeviceTemplate Template { get; set; }
+    public virtual DeviceTemplate? Template { get; set; }
 }

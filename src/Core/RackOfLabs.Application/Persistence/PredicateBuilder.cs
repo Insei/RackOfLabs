@@ -18,7 +18,8 @@ public class PredicateBuilder
     {
         var predicate = False<T>();
         var properties = typeof(T).GetProperties();
-        foreach (var propertyInfo in properties.Where(p => p.GetGetMethod()?.IsVirtual is false))
+        // TODO: Add search in enums properties
+        foreach (var propertyInfo in properties.Where(p => p.GetGetMethod()?.IsVirtual is false && !p.PropertyType.IsEnum))
         {
             var parameter = Expression.Parameter(typeof(T), "x");
             var property = Expression.Property(parameter, propertyInfo);
@@ -36,8 +37,13 @@ public class PredicateBuilder
     
     public static Expression<Func<T, object>>? ToLambda<T>(string propertyName)
     {
+        // Property not found
+        if(!typeof(T)
+           .GetProperties().Any(p => p.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase)))
+            return null;
+        // Property is Virtual
         if (typeof(T)
-            .GetProperties().Any(p => p.GetGetMethod()?.IsVirtual is false &&
+            .GetProperties().Any(p => p.GetGetMethod()?.IsVirtual is true &&
                                       p.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase)))
             return null;
         

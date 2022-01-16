@@ -54,19 +54,23 @@ public sealed class GenericRepository : IGenericRepositoryAsync
                 orderExpression = PredicateBuilder.ToLambda<TEntity>(orderBy);
             }
 
-            if (orderExpression != null)
+            if (orderExpression == null)
             {
-                entities = direction switch
-                {
-                    SortDirection.Asc => await GetAsync(filterExpression, c => c.OrderBy(orderExpression), null,
-                        pageContext, pageSizeContext, cancellationToken),
-                    SortDirection.Desc => await GetAsync(filterExpression, c => c.OrderByDescending(orderExpression),
-                        null, pageSizeContext, pageSize, cancellationToken),
-                    _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-                };
+                orderExpression = PredicateBuilder.ToLambda<TEntity>("Created");
+                direction = SortDirection.Asc;
             }
+#pragma warning disable CS8604
+            entities = direction switch
+            {
+                SortDirection.Asc => await GetAsync(filterExpression, c => c.OrderBy(orderExpression), null,
+                    pageContext, pageSizeContext, cancellationToken),
+                SortDirection.Desc => await GetAsync(filterExpression, c => c.OrderByDescending(orderExpression), null, 
+                    pageContext, pageSizeContext, cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
+#pragma warning restore CS8604
 
-            return entities ?? await GetAsync(filterExpression, null, null, page, pageSize, cancellationToken);
+            return entities;
     }
 
     public async Task<int> CountAsync<TEntity>(Expression<Func<TEntity, bool>>? filter = null, CancellationToken cancellationToken = default) where TEntity : BaseEntity

@@ -10,19 +10,19 @@ namespace RackOfLabs.Application.Services;
 
 public class GenericEntityService : IGenericEntityService
 {
-    internal readonly IGenericRepositoryAsync _repository;
+    internal readonly IGenericRepositoryAsync Repository;
     private readonly IMapper _mapper;
 
     public GenericEntityService(IGenericRepositoryAsync repository, IMapper mapper)
     {
-        _repository = repository;
+        Repository = repository;
         _mapper = mapper;
     }
 
     public virtual async Task<PaginatedResult<List<TDto>>> GetAsync<TDto, TEntity>(PaginatedListRequest request) where TEntity : BaseEntity
     {
-        var pagination = Pagination.Generate(request, await _repository.CountAsync<TEntity>(request.Search));
-        var entities = await _repository.GetAsync<TEntity>(request.Search, request.Sort.FieldName, request.Sort.Direction, 
+        var pagination = Pagination.Generate(request, await Repository.CountAsync<TEntity>(request.Search));
+        var entities = await Repository.GetAsync<TEntity>(request.Search, request.Sort.FieldName, request.Sort.Direction, 
             pagination.CurrentPage, pagination.PageSize);
         
         var result = new PaginatedResult<List<TDto>>
@@ -35,7 +35,7 @@ public class GenericEntityService : IGenericEntityService
 
     public virtual async Task<Result<TDto>> GetAsync<TDto, TEntity>(Guid id) where TEntity : BaseEntity
     {
-        var entity = await _repository.GetByIdAsync<TEntity>(id);
+        var entity = await Repository.GetByIdAsync<TEntity>(id);
         if (entity == null) throw new EntityNotFoundException();
         var result = new Result<TDto>
         {
@@ -47,7 +47,8 @@ public class GenericEntityService : IGenericEntityService
     public virtual async Task<Result<TDto>> CreateAsync<TDto, TEntity, TCreateReq>(TCreateReq request) where TEntity : BaseEntity
     {
         var entityToCreate = _mapper.Map<TEntity>(request);
-        var entity = await _repository.AddAsync(entityToCreate);
+        var entity = await Repository.AddAsync(entityToCreate);
+        await Repository.SaveChangesAsync();
         var result = new Result<TDto>
         {
             Data = _mapper.Map<TDto>(entity)
@@ -66,11 +67,11 @@ public class GenericEntityService : IGenericEntityService
         where TUpdateReq : IRequest
     {
         await ValidateUpdateRequestAsync(request, id);
-        var entity = await _repository.GetByIdAsync<TEntity>(id);
+        var entity = await Repository.GetByIdAsync<TEntity>(id);
         if (entity == null) throw new EntityNotFoundException();
         _mapper.Map(request, entity);
-        _repository.Update(entity);
-        await _repository.SaveChangesAsync();
+        Repository.Update(entity);
+        await Repository.SaveChangesAsync();
         var result = new Result<TDto>
         {
             Data = _mapper.Map<TDto>(entity)
@@ -80,10 +81,10 @@ public class GenericEntityService : IGenericEntityService
 
     public virtual async Task<Result> DeleteAsync<TEntity>(Guid id) where TEntity : BaseEntity
     {
-        var entity = await _repository.GetByIdAsync<TEntity>(id);
+        var entity = await Repository.GetByIdAsync<TEntity>(id);
         if (entity == null) throw new EntityNotFoundException();
-        _repository.Delete(entity);
-        await _repository.SaveChangesAsync();
+        Repository.Delete(entity);
+        await Repository.SaveChangesAsync();
         return new Result();
     }
 }

@@ -19,11 +19,11 @@ public class DeviceService : GenericEntityService, IDeviceService
     protected override async Task ValidateUpdateRequestAsync<TUpdateReq>(TUpdateReq updateRequest, Guid id)
     {
         var device = updateRequest as UpdateDeviceRequest;
-        var exist = await _repository.ExistsAsync<Device>(d => device != null 
+        var exist = await Repository.ExistsAsync<Device>(d => device != null 
                                             && !d.Removed && d.Serial.Trim().Equals(device.Serial.Trim())
                                             && d.Id != id);
         if (exist)
-            throw new EntityAlreadyExistsException("device with this Serial already exist");
+            throw new EntityAlreadyExistsException("Device with this Serial already exist");
 
     }
 }

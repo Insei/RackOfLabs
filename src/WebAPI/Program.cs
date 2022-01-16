@@ -3,7 +3,6 @@ using FluentValidation.AspNetCore;
 using RackOfLabs.Application.Extensions;
 using RackOfLabs.Infrastructure.Persistence.Contexts;
 using RackOfLabs.Infrastructure.Persistence.Extensions;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,12 +16,16 @@ builder.Services.AddControllers().AddFluentValidation().AddJsonOptions(x =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<DataDbContext>(options => options.UseInMemoryDatabase("LabOfRacks"+ DateTime.Now));
 builder.Services.AddApplication();
 builder.Services.AddInfrastructurePersistence();
 
 
 var app = builder.Build();
+
+using (var scope = 
+       app.Services.CreateScope())
+using (var context = scope.ServiceProvider.GetService<DataDbContext>())
+    context.Database.EnsureCreated();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
